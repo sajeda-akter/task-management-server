@@ -55,10 +55,29 @@ async function run() {
     })
 
     app.get('/users',async(req,res)=>{
-      const user=await userCollection.find({}).toArray()
+      const email=req.query.email
+      let query={}
+      if(email){
+        query={email:email}
+      }
+      const user=await userCollection.find(query).toArray()
       res.send(user)
     })
 
+    app.patch('/users/:id',async(req,res)=>{
+      const filter={_id:new ObjectId(req.params.id)}
+      const updateDoc=req.body
+      const updateBook={
+        $set:{
+          user:updateDoc.user,
+          photoURL:updateDoc.photoURL
+        }
+      }
+      console.log(updateDoc,updateBook)
+      const result=await userCollection.updateOne(filter,updateBook)
+      res.send(result)
+    })
+    
     app.get('/users/admin/:email',async(req,res)=>{
       const email=req.params.email
       const query={email:email}
@@ -78,7 +97,16 @@ async function run() {
     })
 
     app.get('/task',async(req,res)=>{
-      const allTask=await taskCollection.find({}).toArray()
+      const filter=req.query;
+      const query={}
+
+      // asc and desc by date
+      const options={
+        sort:{
+          date:filter.sort === 'asc'?  1:-1
+        }
+      }
+      const allTask=await taskCollection.find(query,options).toArray()
       res.send(allTask)
     })
 
